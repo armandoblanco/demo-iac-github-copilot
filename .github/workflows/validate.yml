@@ -1,0 +1,25 @@
+name: Validate Bicep (DISABLED)
+
+on:
+  workflow_dispatch:
+# Commented out to disable automatic execution
+#  pull_request:
+#    branches:
+#      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Azure CLI
+        uses: azure/CLI@v2
+
+      - name: Validate Bicep files
+        run: |
+          for file in $(find ./bicep -name '*.bicep'); do
+            az bicep build --file $file
+          done

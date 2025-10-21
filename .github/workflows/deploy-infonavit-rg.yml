@@ -1,0 +1,63 @@
+name: Deploy Infonavit Resource Group
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'bicep/main-infonavit.bicep'
+      - 'bicep/modules/resource-group/**'
+      - '.github/workflows/deploy-infonavit-rg.yml'
+  workflow_dispatch:
+
+env:
+  AZURE_SUBSCRIPTION_ID: b0e31db7-bf93-4f25-95a2-cb993d264faf
+  LOCATION: eastus2
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          enable-AzPSSession: false
+
+      - name: Set Azure Subscription
+        run: |
+          az account set --subscription ${{ env.AZURE_SUBSCRIPTION_ID }}
+          az account show
+
+      - name: Validate Bicep template
+        run: |
+          az bicep build --file ./bicep/main-infonavit.bicep
+
+      - name: What-If deployment
+        run: |
+          DEPLOYMENT_NAME="deploy-infonavit-rg-$(date +%Y%m%d-%H%M%S)"
+          az deployment sub what-if \
+            --name "$DEPLOYMENT_NAME" \
+            --location ${{ env.LOCATION }} \
+            --template-file ./bicep/main-infonavit.bicep \
+            --subscription ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy Infonavit Resource Group
+        run: |
+          DEPLOYMENT_NAME="deploy-infonavit-rg-$(date +%Y%m%d-%H%M%S)"
+          echo "DEPLOYMENT_NAME=$DEPLOYMENT_NAME" >> $GITHUB_ENV
+          az deployment sub create \
+            --name "$DEPLOYMENT_NAME" \
+            --location ${{ env.LOCATION }} \
+            --template-file ./bicep/main-infonavit.bicep \
+            --subscription ${{ env.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Display deployment outputs
+        run: |
+          az deployment sub show \
+            --name "${{ env.DEPLOYMENT_NAME }}" \
+            --query properties.outputs

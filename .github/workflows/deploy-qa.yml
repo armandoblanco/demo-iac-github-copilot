@@ -1,0 +1,26 @@
+name: Deploy to QA (DISABLED)
+
+on:
+  workflow_dispatch:
+# Commented out to disable automatic execution
+#  push:
+#    branches:
+#      - qa
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Azure CLI
+        uses: azure/CLI@v2
+
+      - name: Deploy Bicep to QA
+        run: |
+          az deployment group create \
+            --resource-group rg-qa \
+            --template-file ./bicep/main.bicep \
+            --parameters @./bicep/parameters/qa.parameters.json
