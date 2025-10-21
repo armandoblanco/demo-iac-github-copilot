@@ -11,7 +11,7 @@ on:
   workflow_dispatch:
 
 env:
-  AZURE_SUBSCRIPTION_ID: b0e31db7-bf93-4f25-95a2-cb993d264faf
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   LOCATION: eastus2
 
 jobs:
